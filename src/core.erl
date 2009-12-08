@@ -6,6 +6,7 @@
 -define(GEN_TCP_OPTIONS, [list, {packet, 0}, {active, false}, {reuseaddr, true}]).
 
 listen(Port) ->
+	io:fwrite("Emud started. Listening on port ~w...~n", [Port]),
 	register(client_manager, spawn(fun() -> manage_clients([]) end)),
 	{ok, LSocket} = gen_tcp:listen(Port, ?GEN_TCP_OPTIONS),
 	do_accept(LSocket).	
