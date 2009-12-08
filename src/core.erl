@@ -30,6 +30,8 @@ do_accept(LSocket) ->
 				do_accept(LSocket);
 			{error, timeout} ->
 				do_accept(LSocket);
+			{error, closed} ->
+				ok;
 			{error, Reason} ->
 				io:fwrite("Listener produced error ~w~n", [Reason]),
 				do_accept(LSocket)
@@ -65,7 +67,7 @@ handle_call(stop, From, Tab) ->
 	unregister(emud_listener),
 	unregister(emud_client_manager),
 	receive
-	after 300 ->
+	after 1000 ->
 		io:fwrite("Received listener shutdown message~n"),
 		{stop, normal, stopped, Tab}
 	end.
