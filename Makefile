@@ -1,9 +1,7 @@
-CC = erlc
-
-MODS = core.erl
+all: compile
 
 compile:
-	${CC} ${MODS}
+	$(MAKE) -C src
 
-all:
-	compile
+clean:
+	cd src; rm -rf *.beam
