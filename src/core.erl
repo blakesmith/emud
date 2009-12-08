@@ -1,4 +1,7 @@
 -module(core).
+
+-include_lib("eunit/include/eunit.hrl").
+
 -behaviour(gen_server).
 -export([listen/1, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -23,7 +26,7 @@ init([Port]) ->
 
 do_accept(LSocket) ->
 	receive
-		{terminate, Reason} ->
+		{terminate, _From, Reason} ->
 			io:fwrite("Stopping listener with reason ~s~n", [Reason]),
 			ok
 	after 0 ->
@@ -43,7 +46,7 @@ do_accept(LSocket) ->
 handle_client(Socket) ->
 	case gen_tcp:recv(Socket, 0) of
 		{ok, Packet} ->
-			gen_tcp:send(Socket, input_parse(Packet)),
+			gen_tcp:send(Socket, input_parser:parse(Packet)),
 			handle_client(Socket);
 		{error, _Reason} ->
 			emud_client_manager ! {disconnect, Socket}
@@ -62,18 +65,15 @@ manage_clients(Clients) ->
 	end,
 	manage_clients(Clients).
 
-input_parse(Packet) ->
-	Packet.	
-
-handle_call(stop, _From, Tab) ->
+handle_call(stop, From, Tab) ->
 	io:fwrite("Shutting down...~n"),
-	emud_listener ! {terminate, stopped},
+	emud_listener ! {terminate, From, stopped},
 	emud_client_manager ! {terminate, stopped},
 	unregister(emud_listener),
 	unregister(emud_client_manager),
 	receive
 	after 300 ->
-		io:fwrite("Listener shutdown~n"),
+		io:fwrite("Received listener shutdown message~n"),
 		{stop, normal, stopped, Tab}
 	end.
 

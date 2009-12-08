@@ -5,3 +5,7 @@ compile:
 
 clean:
 	cd src; rm -rf *.beam
+
+test:
+	$(MAKE) -C src
+	$(MAKE) -C tests

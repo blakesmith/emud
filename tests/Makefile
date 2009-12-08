@@ -1,7 +1,6 @@
 CC = erlc
 
-MODS = core.erl \
-       input_parser.erl
+MODS = input_parser_tests.erl
 
 compile:
 	${CC} ${MODS}
