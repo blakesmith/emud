@@ -3,7 +3,6 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -behaviour(gen_server).
--export([listen/1, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 		terminate/2, code_change/3]).
 
@@ -11,13 +10,7 @@
 
 -define(GEN_TCP_OPTIONS, [list, {packet, 0}, {active, false}, {reuseaddr, true}]).
 
-listen(Port) ->
-	gen_server:start_link({local, emud}, ?MODULE, [Port], []).
-
-stop() ->
-	gen_server:call(emud, stop).
-
-init([Port]) ->
+init([{port, Port}]) ->
 	io:fwrite("Emud started. Listening on port ~w...~n", [Port]),
 	register(emud_client_manager, spawn(fun() -> manage_clients([]) end)),
 	{ok, LSocket} = gen_tcp:listen(Port, ?GEN_TCP_OPTIONS),
@@ -38,7 +31,7 @@ do_accept(LSocket) ->
 			{error, timeout} ->
 				do_accept(LSocket);
 			{error, Reason} ->
-				io:fwrite("Listener produced error ~w", [Reason]),
+				io:fwrite("Listener produced error ~w~n", [Reason]),
 				do_accept(LSocket)
 		end
 	end.
