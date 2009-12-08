@@ -18,24 +18,18 @@ init([{port, Port}]) ->
 	{ok, listening}.
 
 do_accept(LSocket) ->
-	receive
-		{terminate, _From, Reason} ->
-			io:fwrite("Stopping listener with reason ~s~n", [Reason]),
-			ok
-	after 0 ->
-		case gen_tcp:accept(LSocket, 200) of
-			{ok, Socket} ->
-				spawn(fun() -> handle_client(Socket) end),
-				emud_client_manager ! {connect, Socket},
-				do_accept(LSocket);
-			{error, timeout} ->
-				do_accept(LSocket);
-			{error, closed} ->
-				ok;
-			{error, Reason} ->
-				io:fwrite("Listener produced error ~w~n", [Reason]),
-				do_accept(LSocket)
-		end
+	case gen_tcp:accept(LSocket) of
+		{ok, Socket} ->
+			spawn(fun() -> handle_client(Socket) end),
+			emud_client_manager ! {connect, Socket},
+			do_accept(LSocket);
+		{error, timeout} ->
+			do_accept(LSocket);
+		{error, closed} ->
+			ok;
+		{error, Reason} ->
+			io:fwrite("Listener produced error ~w~n", [Reason]),
+			do_accept(LSocket)
 	end.
 
 handle_client(Socket) ->
@@ -66,11 +60,8 @@ handle_call(stop, From, Tab) ->
 	emud_client_manager ! {terminate, stopped},
 	unregister(emud_listener),
 	unregister(emud_client_manager),
-	receive
-	after 1000 ->
-		io:fwrite("Received listener shutdown message~n"),
-		{stop, normal, stopped, Tab}
-	end.
+	io:fwrite("Received listener shutdown message~n"),
+	{stop, normal, stopped, Tab}.
 
 handle_cast(_Msg, State) ->
 	{noreply, State}.
