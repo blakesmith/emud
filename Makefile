@@ -1,10 +1,11 @@
-all: compile
+all: test
 
 compile:
 	$(MAKE) -C src
 
 clean:
-	cd src; rm -rf *.beam
+	rm -rf src/*.beam
+	rm -rf tests/*.beam
 
 test:
 	$(MAKE) -C src

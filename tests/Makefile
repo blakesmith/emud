@@ -1,9 +1,11 @@
-CC = erlc
+.SUFFIXES: .erl .beam .yrl
 
-MODS = input_parser_tests.erl
+.erl.beam:
+	erlc -W $<
 
-compile:
-	${CC} ${MODS}
+MODS = input_parser_tests
+
+compile: ${MODS:%=%.beam}
 
 all:
 	compile
