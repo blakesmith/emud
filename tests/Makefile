@@ -1,7 +1,7 @@
 .SUFFIXES: .erl .beam .yrl
 
 .erl.beam:
-	erlc -W $<
+	erlc -o ../ebin -W $<
 
 MODS = input_parser_tests
 

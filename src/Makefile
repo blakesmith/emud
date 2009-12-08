@@ -1,7 +1,9 @@
 .SUFFIXES: .erl .beam .yrl
 
+OUT = ../
+
 .erl.beam:
-	erlc -W $<
+	erlc -o ../ebin -W $< 
 
 MODS = core input_parser
 
