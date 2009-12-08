@@ -12,7 +12,7 @@ listen(Port) ->
 	gen_server:start_link({local, emud}, ?MODULE, [Port], []).
 
 stop() ->
-	gen_server:call(?MODULE, stop).
+	gen_server:call(emud, stop).
 
 init([Port]) ->
 	io:fwrite("Emud started. Listening on port ~w...~n", [Port]),
@@ -22,10 +22,23 @@ init([Port]) ->
 	{ok, listening}.
 
 do_accept(LSocket) ->
-	{ok, Socket} = gen_tcp:accept(LSocket),
-	spawn(fun() -> handle_client(Socket) end),
-	emud_client_manager ! {connect, Socket},
-	do_accept(LSocket).
+	receive
+		{terminate, Reason} ->
+			io:fwrite("Stopping listener with reason ~s~n", [Reason]),
+			ok
+	after 0 ->
+		case gen_tcp:accept(LSocket, 200) of
+			{ok, Socket} ->
+				spawn(fun() -> handle_client(Socket) end),
+				emud_client_manager ! {connect, Socket},
+				do_accept(LSocket);
+			{error, timeout} ->
+				do_accept(LSocket);
+			{error, Reason} ->
+				io:fwrite("Listener produced error ~w", [Reason]),
+				do_accept(LSocket)
+		end
+	end.
 
 handle_client(Socket) ->
 	case gen_tcp:recv(Socket, 0) of
@@ -43,7 +56,9 @@ manage_clients(Clients) ->
 			io:fwrite("~w connected~n", [Socket]);
 		{disconnect, Socket} ->
 			io:fwrite("~w disconnected~n", [Socket]),
-			ok
+			ok;
+		{terminate, Reason} ->
+			io:fwrite("Client manager terminated with reason ~w~n", [Reason])
 	end,
 	manage_clients(Clients).
 
@@ -51,7 +66,16 @@ input_parse(Packet) ->
 	Packet.	
 
 handle_call(stop, _From, Tab) ->
-	{stop, normal, stopped, Tab}.
+	io:fwrite("Shutting down...~n"),
+	emud_listener ! {terminate, stopped},
+	emud_client_manager ! {terminate, stopped},
+	unregister(emud_listener),
+	unregister(emud_client_manager),
+	receive
+	after 300 ->
+		io:fwrite("Listener shutdown~n"),
+		{stop, normal, stopped, Tab}
+	end.
 
 handle_cast(_Msg, State) ->
 	{noreply, State}.
