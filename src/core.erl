@@ -44,15 +44,22 @@ handle_client(Socket) ->
 manage_clients(Clients) ->
 	receive
 		{connect, Socket} ->
-			gen_tcp:send(Socket, "Connected.\n"),
-			io:fwrite("~w connected~n", [Socket]);
+			Client = #client{login=unspecified, socket=Socket},
+			WithNewClient = [Client|Clients],
+			gen_tcp:send(Client#client.socket, "Connected.\n"),
+			io:fwrite("~w connected. Client count: ~w~n", [Client#client.socket, length(WithNewClient)]),
+			manage_clients(WithNewClient);
 		{disconnect, Socket} ->
-			io:fwrite("~w disconnected~n", [Socket]),
-			ok;
+			WithoutClient = delete_client_by_socket(Clients, Socket),
+			io:fwrite("~w disconnected. Client count: ~w~n", [Socket, length(WithoutClient)]),
+			manage_clients(WithoutClient);
 		{terminate, Reason} ->
-			io:fwrite("Client manager terminated with reason ~w~n", [Reason])
-	end,
-	manage_clients(Clients).
+			io:fwrite("Client manager terminated with reason ~w~n", [Reason]),
+			ok
+	end.
+
+delete_client_by_socket(Clients, Socket) ->
+	lists:filter(fun(X) -> X#client.socket /= Socket end, Clients).
 
 handle_call(stop, From, Tab) ->
 	io:fwrite("Shutting down...~n"),
