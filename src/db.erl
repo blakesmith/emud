@@ -1,4 +1,5 @@
 -module(db).
+-include_lib("eunit/include/eunit.hrl").
 -export([init/0, create_ram_table/2, insert/1, select/1]).
 
 init() ->
