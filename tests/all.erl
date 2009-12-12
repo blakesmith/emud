@@ -3,6 +3,7 @@
 
 -define(TESTS_TO_RUN,
 	[
+		main,
 		input_parser,
 		db
 	]).
