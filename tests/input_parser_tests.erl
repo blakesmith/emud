@@ -2,4 +2,4 @@
 -include_lib("eunit/include/eunit.hrl").
 
 parse_test() ->
-	?_assert("test" == input_parser:parse("test")).
+	?assertEqual("test", input_parser:parse("test")).
