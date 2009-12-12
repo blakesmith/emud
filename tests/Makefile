@@ -3,7 +3,7 @@
 .erl.beam:
 	erlc -o ../ebin -W $<
 
-MODS = input_parser_tests db_tests
+MODS = all input_parser_tests db_tests
 
 compile: ${MODS:%=%.beam}
 

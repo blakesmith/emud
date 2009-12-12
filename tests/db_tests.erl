@@ -1,5 +1,6 @@
 -module(db_tests).
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
 -define(TEST_TABLE, items).
 -define(TEST_TABLE_FIELDS, [name, power]).
@@ -24,4 +25,10 @@ insert_test() ->
 	?assertEqual({atomic, ok}, db:insert(R)),
 	teardown().
 	
-
+select_test() ->
+	setup(),
+	db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
+	R = #items{name=sword, power=10},
+	db:insert(R),
+	?assertEqual([#items{name=sword, power=10}], db:select(qlc:q([X || X <- mnesia:table(items)]))),
+	teardown().
