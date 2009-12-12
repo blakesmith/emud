@@ -5,7 +5,7 @@ OUT = ../
 .erl.beam:
 	erlc -o ../ebin -W $< 
 
-MODS = emud core input_parser db
+MODS = emud main input_parser db
 
 compile: ${MODS:%=%.beam}
 

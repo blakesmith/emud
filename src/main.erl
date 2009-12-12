@@ -1,4 +1,4 @@
--module(core).
+-module(main).
 
 -include_lib("eunit/include/eunit.hrl").
 
