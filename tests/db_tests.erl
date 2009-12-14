@@ -9,32 +9,34 @@
 setup() ->
 	db:init().
 
-teardown() ->
-	mnesia:delete_table(?TEST_TABLE),
-	mnesia:stop().
+teardown(_Value) ->
+	mnesia:delete_table(?TEST_TABLE).
 
 create_ram_table_test_() ->
-	fun() ->
-		setup(),
-		?assertEqual({atomic, ok}, db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS)),
-		teardown()
-	end.
+	{"Creates an mnesia ram table", 
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+			?assertEqual({atomic, ok}, db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS))
+		end
+	}.
 
 insert_test_() ->
-	fun() ->
-		setup(),
-		db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
-		R = #items{name=sword, power=10},
-		?assertEqual({atomic, ok}, db:insert(R)),
-		teardown()
-	end.
+	{"Inserts an item record into a ram table", 
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+			db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
+			R = #items{name=sword, power=10},
+			?assertEqual({atomic, ok}, db:insert(R))
+		end
+	}.
 	
 select_test_() ->
-	fun() ->
-		setup(),
-		db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
-		R = #items{name=sword, power=10},
-		db:insert(R),
-		?assertEqual([#items{name=sword, power=10}], db:select(qlc:q([X || X <- mnesia:table(items)]))),
-		teardown()
-	end.
+	{"Selects an item record from the ram table", 
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+			db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
+			R = #items{name=sword, power=10},
+			db:insert(R),
+			?assertEqual([#items{name=sword, power=10}], db:select(qlc:q([X || X <- mnesia:table(items)])))
+		end
+	}.
