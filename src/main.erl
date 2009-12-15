@@ -20,7 +20,6 @@ init([{port, Port}]) ->
 do_accept(LSocket) ->
 	case gen_tcp:accept(LSocket) of
 		{ok, Socket} ->
-			spawn(fun() -> handle_client(Socket) end),
 			emud_client_manager ! {connect, Socket},
 			do_accept(LSocket);
 		{error, timeout} ->
@@ -32,13 +31,13 @@ do_accept(LSocket) ->
 			do_accept(LSocket)
 	end.
 
-handle_client(Socket) ->
-	case gen_tcp:recv(Socket, 0) of
+handle_client(Client) ->
+	case gen_tcp:recv(Client#client.socket, 0) of
 		{ok, Packet} ->
-			gen_tcp:send(Socket, input_parser:parse(Packet)),
-			handle_client(Socket);
+			gen_tcp:send(Client#client.socket, input_parser:parse(Packet)),
+			handle_client(Client);
 		{error, _Reason} ->
-			emud_client_manager ! {disconnect, Socket}
+			emud_client_manager ! {disconnect, Client}
 	end.
 
 manage_clients(Clients) ->
@@ -48,10 +47,11 @@ manage_clients(Clients) ->
 			WithNewClient = [Client|Clients],
 			gen_tcp:send(Client#client.socket, "Connected.\n"),
 			io:fwrite("~w connected. Client count: ~w~n", [Client#client.socket, length(WithNewClient)]),
+			spawn(fun() -> handle_client(Client) end),
 			manage_clients(WithNewClient);
-		{disconnect, Socket} ->
-			WithoutClient = delete_client_by_socket(Clients, Socket),
-			io:fwrite("~w disconnected. Client count: ~w~n", [Socket, length(WithoutClient)]),
+		{disconnect, Client} ->
+			WithoutClient = delete_client_by_socket(Clients, Client#client.socket),
+			io:fwrite("~w disconnected. Client count: ~w~n", [Client#client.socket, length(WithoutClient)]),
 			manage_clients(WithoutClient);
 		{terminate, Reason} ->
 			io:fwrite("Client manager terminated with reason ~w~n", [Reason]),
