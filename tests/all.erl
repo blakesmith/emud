@@ -5,7 +5,8 @@
 	[
 		main,
 		input_parser,
-		db
+		db,
+		auth
 	]).
 title(T) ->
 	io:format(user, "Running ~w\n", [T]).
