@@ -20,8 +20,16 @@ create_ram_table_test_() ->
 		end
 	}.
 
+create_disc_table_test_() ->
+	{"Creates an mnesia disc table", 
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+			?assertEqual({atomic, ok}, db:create_disc_table(?TEST_TABLE, ?TEST_TABLE_FIELDS))
+		end
+	}.
+
 insert_test_() ->
-	{"Inserts an item record into a ram table", 
+	{"Inserts an item record into a table", 
 		setup, fun setup/0, fun teardown/1,
 		fun() ->
 			db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),
@@ -31,7 +39,7 @@ insert_test_() ->
 	}.
 	
 select_test_() ->
-	{"Selects an item record from the ram table", 
+	{"Selects an item record from the table", 
 		setup, fun setup/0, fun teardown/1,
 		fun() ->
 			db:create_ram_table(?TEST_TABLE, ?TEST_TABLE_FIELDS),

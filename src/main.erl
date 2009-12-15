@@ -43,7 +43,7 @@ handle_client(Client) ->
 manage_clients(Clients) ->
 	receive
 		{connect, Socket} ->
-			Client = #client{login=unspecified, socket=Socket},
+			Client = #client{login=unspecified, authed=false, socket=Socket},
 			WithNewClient = [Client|Clients],
 			gen_tcp:send(Client#client.socket, "Connected.\n"),
 			io:fwrite("~w connected. Client count: ~w~n", [Client#client.socket, length(WithNewClient)]),

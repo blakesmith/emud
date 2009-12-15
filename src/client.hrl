@@ -1,1 +1,1 @@
--record(client, {login, socket}).
+-record(client, {login, authed, socket}).
