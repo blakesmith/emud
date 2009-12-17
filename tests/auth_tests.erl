@@ -32,3 +32,18 @@ add_user_test_() ->
 				?assertEqual(ExpectedUser, auth:add_user(L, P, E))
 		end
 	}.
+
+select_user_test_() ->
+	{"Finds a user record after it being inserted into the database",
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+				auth:init(),
+				L = "blake",
+				P = "test",
+				E = "bob@bob.com",
+				ExpectedUser = #users{login=L, password=crypto:sha(P), email=E},
+				auth:add_user(L, P, E),
+				U = auth:find_user("blake"),
+				?assertEqual(ExpectedUser, U)	
+		end
+	}.
