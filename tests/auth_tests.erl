@@ -47,3 +47,17 @@ select_user_test_() ->
 				?assertEqual(ExpectedUser, U)	
 		end
 	}.
+
+check_credentials_test_() ->
+	{"Checks if a users' password matches the password in the database",
+		setup, fun setup/0, fun teardown/1,
+		fun() ->
+				auth:init(),
+				L = "blake",
+				P = "test",
+				E = "bob@bob.com",
+				auth:add_user(L, P, E),
+				?assert(auth:check_credentials(L, P)),
+				?assert(not auth:check_credentials(L, "bloop"))
+		end
+	}.

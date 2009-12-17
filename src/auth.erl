@@ -3,7 +3,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 -include("users.hrl").
--export([init/0, add_user/3, find_user/1]).
+-export([init/0, add_user/3, find_user/1, check_credentials/2]).
 
 init() ->
 	crypto:start(),
@@ -22,4 +22,9 @@ add_user(Login, Password, Email) ->
 find_user(Login) ->
 	Results = db:select(qlc:q([X || X <- mnesia:table(users), X#users.login =:= Login])),
 	lists:nth(1, Results).
+
+check_credentials(Login, Password) ->
+	crypto:start(),
+	U = find_user(Login),
+	U#users.password == crypto:sha(Password).
 
