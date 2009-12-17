@@ -1,0 +1,1 @@
+-record(users, {login, password, email}).
